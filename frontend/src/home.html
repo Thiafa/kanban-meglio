@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban</title>
+  <link rel="stylesheet" href="./css/index.css">
+  <script src="./js/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js" integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div class="container">
+    <nav class="nav">
+      <a href="index.html">Kanban</a>
+      <ul class="">
+        <li><a href="#" id="logout">Sair</a></li>
+      </ul>
+    </nav>
+  </div>
+  <main class="container">
+    <div class="card-list">
+      <div class="card">
+        <div class="card-header">A Fazer</div>
+        <div class="card-content">
+          <div class="card-item">Tarefa 1</div>
+          <div class="card-item">Tarefa 2</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Em Progresso</div>
+        <div class="card-content">
+          <div class="card-item">Tarefa 3</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Concluído</div>
+        <div class="card-content">
+          <div class="card-item">Tarefa 4</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <button id="create-task" style="padding: 10px 20px;">Criar Tarefa</button>
+  <script src="./js/script.js"></script>
+</body>
+
+</html>
