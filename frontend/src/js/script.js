@@ -83,36 +83,61 @@ $(document).ready(function () {
 });
 
 $(document).ready(function () {
-  $('.card-content')
-    .sortable({
-      connectWith: '.card-content',
-      placeholder: 'card-item-placeholder',
-      stop: function (event, ui) {
-        console.log('Task moved');
-      },
-    })
-    .disableSelection();
+  // Função para inicializar sortable
+  function initializeSortable() {
+    $('.card-list')
+      .sortable({
+        connectWith: '.card-list',
+        placeholder: 'card-item-placeholder',
+        beforeStop: function (event, ui) {
+          console.log('Task moved');
+          $('.card-list').each(function () {
+            $(this)
+              .find('.card-item')
+              .each(function (index) {
+                const taskId = $(this).data('card-item');
+                console.log(`Task ID: ${taskId}, New Position: ${index}`);
+              });
+          });
+        },
+      })
+      .disableSelection();
+    $('.card-content')
+      .sortable({
+        connectWith: '.card-content',
+        placeholder: 'card-item-placeholder',
+        stop: function (event, ui) {
+          console.log('Task moved');
+          $('.card-content').each(function () {
+            $(this)
+              .find('.card-item')
+              .each(function (index) {
+                const taskId = $(this).data('card-item');
+                console.log(`Task ID: ${taskId}, New Position: ${index}`);
+              });
+          });
+        },
+      })
+      .disableSelection();
+  }
 
+  initializeSortable();
+
+  // Criar nova tarefa
   $('#create-task').click(function () {
     const newTask = $('<div class="card-item">Nova Tarefa</div>');
     $('.card-content').first().append(newTask);
   });
-});
 
-$('#logout').click(function (e) {
-  e.preventDefault();
-  Swal.fire({
-    title: 'Tem certeza?',
-    text: 'Você realmente quer sair?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sim, sair!',
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Add your logout functionality here
-      Swal.fire('Desconectado!', 'Você saiu com sucesso.', 'success');
-    }
+  // Criar nova coluna
+  $('#criar-coluna').click(function () {
+    const newColumn = $(`
+      <div class="card">
+        <div class="card-header">Nova Coluna</div>
+        <div class="card-content"></div>
+      </div>
+    `);
+    $('.card-list').first().append(newColumn);
+    initializeSortable();
   });
 });
