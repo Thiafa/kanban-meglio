@@ -15,8 +15,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory(10)->create();
-        Coluna::create(['nome' => 'A fazer', 'user_id' => 1]);
+
         $this->call([
+            ColunaSeeder::class,
             TarefaSeeder::class,
         ]);
     }

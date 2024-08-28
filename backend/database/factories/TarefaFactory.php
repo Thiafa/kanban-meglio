@@ -19,13 +19,13 @@ class TarefaFactory extends Factory
      */
     public function definition(): array
     {
-        $users = User::all()->count();
-        $colunas = Coluna::all()->count();
+        $usersCount = User::all()->count();
+        $colunasCount = Coluna::all()->count();
         return [
             'titulo' => fake()->word(),
             'descricao' => fake()->text(),
-            'user_id' => rand(1, $users),
-            'coluna_id' => rand(1, $colunas),
+            'user_id' => rand(1, $usersCount),
+            'coluna_id' => rand(1, $colunasCount),
         ];
     }
 }

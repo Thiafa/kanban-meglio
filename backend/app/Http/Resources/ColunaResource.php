@@ -19,6 +19,8 @@ class ColunaResource extends JsonResource
             'id' => $this->id,
             'nome' => $this->nome,
             'user' => new UserResource($this->user),
+            'created_at' => $this->created_at->toDateTimeString(),
+            'updated_at' => $this->updated_at->toDateTimeString()
         ];
     }
 }

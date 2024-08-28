@@ -30,6 +30,7 @@ return new class extends Migration
     {
         Schema::table('tarefas', function (Blueprint $table) {
             $table->dropForeign(['user_id']);
+            $table->dropForeign(['coluna_id']);
         });
         Schema::dropIfExists('tarefas');
     }
