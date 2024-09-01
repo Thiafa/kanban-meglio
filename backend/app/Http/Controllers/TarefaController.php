@@ -38,24 +38,15 @@ class TarefaController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // Verifica o menor valor na coluna 'order'
             $minOrder = Coluna::min('order');
-
-            // Encontra a coluna com o menor valor de 'order'
             $status = Coluna::where('order', $minOrder)->first();
-
-            // Verifica se a coluna existe
             if (!$status) {
                 return response()->json([
                     'status' => false,
                     'message' => "Não existem colunas",
                 ], 400);
             }
-
-            // Encontra o maior valor de 'order' para o usuário autenticado
             $lastOrder = Tarefa::where('user_id', auth()->user()->id)->max('order');
-
-            // Cria uma nova tarefa
             $item = new Tarefa();
             $item->titulo = $request->titulo;
             $item->descricao = $request->descricao;
@@ -102,8 +93,13 @@ class TarefaController extends Controller
     {
         try {
             $tarefa = Tarefa::findOrFail($id);
-            $data = $request->validated();
-            $tarefa->update($data);
+            $data = $request->validate([
+                'titulo' => ['string', 'required'],
+                'descricao' => ['string', 'required']
+            ]);
+            $tarefa->titulo = $data['titulo'];
+            $tarefa->descricao = $data['descricao'];
+            $tarefa->save();
             return (new TarefaResource($tarefa))->additional([
                 'message' => 'Tarefa atualizado com sucesso!',
                 'status' => true

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ColunaResource;
 use App\Models\Coluna;
+use App\Models\Tarefa;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -79,8 +80,11 @@ class ColunaController extends Controller
     {
         try {
             $coluna = Coluna::findOrFail($id);
-            $data = $request->validated();
-            $coluna->update($data);
+            $data = $request->all();
+            $coluna->nome = $data['nome'];
+            $coluna->color = $data['color'];
+            $coluna->save();
+
             return (new ColunaResource($coluna))->additional([
                 'message' => 'Coluna atualizado com sucesso!',
                 'status' => true
@@ -99,7 +103,16 @@ class ColunaController extends Controller
     public function destroy(string $id)
     {
         try {
-            $coluna = Coluna::where('user_id', auth()->user()->id)->findOrFail($id);
+            $coluna = Coluna::with('user')->where('user_id', auth()->user()->id)->findOrFail($id);
+            $tarefas = Tarefa::where('status', $coluna->id)->count();
+            if ($tarefas > 0) {
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Não foi possível excluír a coluna pois existem tarefas associadas!',
+                ], 400);
+            }
+
             $coluna->delete();
             return response()->json([
                 'status' => true,
