@@ -1,143 +1,300 @@
 const URL = 'http://127.0.0.1:8000/api';
 
-// Login
-$(document).ready(function () {
-  $('#form-login').submit(function (e) {
-    e.preventDefault();
-    const email = $('#email').val();
-    const password = $('#password').val();
+function getCookie(name) {
+  let cookie = {};
+  document.cookie.split(';').forEach(function (el) {
+    let [k, v] = el.split('=');
+    cookie[k.trim()] = v;
+  });
+  return cookie[name];
+}
 
-    if (email !== '' && password !== '') {
-      const myInit = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      };
+function getConfig() {
+  return {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getCookie('access_token')}`,
+      Accept: 'application/json',
+    },
+  };
+}
 
-      fetch(URL + '/login', myInit)
+function postConfig(content) {
+  return {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: `Bearer ${getCookie('access_token')}`,
+    },
+    body: JSON.stringify(content),
+  };
+}
+
+function appendColumn(item) {
+  const newColumn = `
+    <div class="card kanban-column" item_id="asd" id=column${item.id}>
+        <div class="card-header" style="background: ${item.color}">
+          <h3 id="kanbam-column" item_id="${item.id}" item_color="${item.color}">${item.nome}</h3>
+        </div>
+        <div class="card-content connectedSortable-tasks">
+        </div>
+    </div>`;
+  $('#quadro').append(newColumn);
+  Column();
+}
+
+function Column() {
+  $('.connectedSortable')
+    .sortable({
+      connectWith: '.connectedSortable',
+      placeholder: 'card-item-placeholder',
+      stop: function (event, ui) {
+        reOrderColumnOrder();
+      },
+    })
+    .disableSelection();
+}
+
+var currentSection = '';
+var addOrUpdate = null;
+var selectedTask = null;
+
+$(function () {
+  fetch(URL + '/colunas', getConfig())
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      data.data.forEach((item) => {
+        appendColumn(item);
+      });
+    })
+    .catch(function (error) {
+      console.error('Erro ao buscar colunas:', error);
+    })
+    .finally(function () {
+      initializeSortable();
+    });
+});
+function reOrderColumnOrder() {
+  const tasks = [];
+  $('.connectedSortable').each(function () {
+    const sectionId = $(this).attr('id');
+    $(this)
+      .children('.kanban-column')
+      .each(function (index) {
+        tasks.push({
+          id: $(this).find('#kanbam-column').attr('item_id'),
+          nome: $(this).find('#kanbam-column').text(),
+          status: sectionId,
+          color: $(this).find('#kanbam-column').attr('item_color'),
+          order: index,
+        });
+      });
+  });
+  fetch(URL + '/colunas/reordenar', postConfig(tasks))
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('erro');
+      }
+      return response.json();
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+$('#create-column').click(function (e) {
+  $('#taskColumnModalLabel').text('Adicionar Colunas');
+  $('#nome').val('');
+  $('#color').val('');
+  $('#taskColumnModal').show();
+
+  $('#save-column')
+    .off('click')
+    .on('click', function (e) {
+      e.preventDefault();
+      const nome = $('#nome').val();
+      const color = $('#color').val();
+      if (nome && color) {
+        fetch(URL + '/colunas', postConfig({ nome: nome, color: color }))
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error('Falha ao criar coluna');
+            }
+            return response.json();
+          })
+          .then(function (response) {
+            appendColumn(response.data);
+            initializeSortable(); // Reinitialize sortable after adding new column
+            $('#taskColumnModal').hide();
+          })
+          .catch(function (error) {
+            console.error('Erro ao criar coluna:', error);
+            Swal.fire({
+              title: 'Erro!',
+              text: error.message,
+              icon: 'error',
+            });
+          });
+      }
+    });
+
+  $('.close').click(function () {
+    $('#taskColumnModal').hide();
+  });
+});
+
+function initializeSortable() {
+  $('.connectedSortable')
+    .sortable({
+      connectWith: '.connectedSortable',
+      placeholder: 'card-item-placeholder',
+      stop: function (event, ui) {
+        console.log('Task moved');
+        reOrderColumnOrder();
+      },
+    })
+    .disableSelection();
+}
+
+// Tarefas
+
+function appendItem(item) {
+  const newitem = `
+  <div class="card-item kanban-item-tasks" id="task${item.id}">
+    <h3 task_id="${item.id}">${item.titulo}</h3>
+    <p>${item.descricao}</p>
+  </div>`;
+  const targetColumn = $(`#column${item.status} .connectedSortable-tasks`);
+
+  if (targetColumn.length) {
+    targetColumn.append(newitem);
+  } else {
+    $('.connectedSortable-tasks').first().append(newitem);
+  }
+  initializeSortableItem();
+}
+
+function Item() {
+  $('.connectedSortable-tasks')
+    .sortable({
+      connectWith: '.connectedSortable-tasks',
+      placeholder: 'card-item-placeholder',
+      stop: function (event, ui) {
+        reOrderKanbanOrder();
+      },
+    })
+    .disableSelection();
+}
+
+function initializeSortableItem() {
+  $('.connectedSortable-tasks')
+    .sortable({
+      connectWith: '.connectedSortable-tasks',
+      placeholder: 'card-item-placeholder',
+      stop: function (event, ui) {
+        console.log('Task moved');
+        reOrderKanbanOrder();
+      },
+    })
+    .disableSelection();
+}
+
+function reOrderKanbanOrder() {
+  var tasks = [];
+  $('.connectedSortable-tasks').each(function () {
+    var sectionId = $(this)
+      .closest('.kanban-column')
+      .attr('id')
+      .replace('column', '');
+    console.log(sectionId);
+
+    $(this)
+      .children('.kanban-item-tasks')
+      .each(function (index) {
+        tasks.push({
+          id: $(this).attr('id').replace('task', ''),
+          titulo: $(this).find('h3').text(),
+          status: sectionId,
+          order: index,
+        });
+      });
+  });
+
+  fetch(URL + '/tarefas/reordenar', postConfig(tasks))
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('erro');
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      console.log('Ordenação atualizada:', data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+
+// Criar Tarefas
+$('#create-task').click(function (e) {
+  $('#taskItemModalLabel').text('Adicionar Tarefa');
+  $('#titulo').val('');
+  $('#descricao').val('');
+  $('#taskItemModal').show();
+
+  $('#save-item')
+    .off('click')
+    .on('click', function (e) {
+      const titulo = $('#titulo').val();
+      const descricao = $('#descricao').val();
+      const status = $('.connectedSortable-tasks');
+
+      fetch(
+        URL + '/tarefas',
+        postConfig({ titulo: titulo, descricao: descricao }),
+      )
         .then(function (response) {
           if (!response.ok) {
-            throw new Error('Login failed');
+            throw new Error('Falha ao criar coluna');
           }
           return response.json();
         })
-        .then(function (data) {
-          date = new Date();
-          const { id, access_token } = data;
-          expires = new Date(Date.now() + 86400 * 1000).toUTCString();
-          document.cookie = `user_id=${id}; expires=${expires}`;
-          document.cookie = `access_token=${access_token}; expires=${expires}`;
-          Swal.fire({
-            title: 'Sucesso!',
-            text: 'Usuário logado com sucesso!',
-            icon: 'success',
-          });
-          setTimeout(function () {
-            window.location.href = 'home.html';
-          }, 1000);
+        .then(function (response) {
+          console.log(response);
+          appendItem(response.data);
         })
-        .catch((error) => {
-          console.log('ERROR!', error);
-          Swal.fire({
-            text: error,
-            title: 'ERROR!',
-            icon: 'error',
-          });
+        .catch(function (error) {
+          console.log(error);
+        })
+        .finally(function () {
+          $('.taskItemModal').hide();
         });
-    } else {
-      Swal.fire({
-        title: 'ERROR!',
-        text: 'O campos precisam ser preenchidos!',
-        icon: 'error',
-      });
-      console.log('Os campos preecisam ser preenchidos!');
-    }
-  });
-});
-
-// Logout
-$(document).ready(function () {
-  $('#logout').click(function (e) {
-    e.preventDefault();
-    var cookies = document.cookie.split(';');
-    var expire = new Date();
-    for (var i = 0; i < cookies.length; i++) {
-      cookie = cookies[i].split('=')[0];
-      expire.setDate(expire.getDate() - 1);
-      document.cookie = `access_token=; expires=' ${expire}`;
-      document.cookie = `user_id=; expires='  ${expire}`;
-    }
-    Swal.fire({
-      title: 'Sucesso!',
-      text: 'Usuário deslogado com sucesso!',
-      icon: 'success',
     });
-
-    setTimeout(function () {
-      window.location.href = 'login.html';
-    }, 1000);
-  });
 });
 
-$(document).ready(function () {
-  // Função para inicializar sortable
-  function initializeSortable() {
-    $('.card-list')
-      .sortable({
-        connectWith: '.card-list',
-        placeholder: 'card-item-placeholder',
-        beforeStop: function (event, ui) {
-          console.log('Task moved');
-          $('.card-list').each(function () {
-            $(this)
-              .find('.card-item')
-              .each(function (index) {
-                const taskId = $(this).data('card-item');
-                console.log(`Task ID: ${taskId}, New Position: ${index}`);
-              });
-          });
-        },
-      })
-      .disableSelection();
-    $('.card-content')
-      .sortable({
-        connectWith: '.card-content',
-        placeholder: 'card-item-placeholder',
-        stop: function (event, ui) {
-          console.log('Task moved');
-          $('.card-content').each(function () {
-            $(this)
-              .find('.card-item')
-              .each(function (index) {
-                const taskId = $(this).data('card-item');
-                console.log(`Task ID: ${taskId}, New Position: ${index}`);
-              });
-          });
-        },
-      })
-      .disableSelection();
-  }
-
-  initializeSortable();
-
-  // Criar nova tarefa
-  $('#create-task').click(function () {
-    const newTask = $('<div class="card-item">Nova Tarefa</div>');
-    $('.card-content').first().append(newTask);
-  });
-
-  // Criar nova coluna
-  $('#criar-coluna').click(function () {
-    const newColumn = $(`
-      <div class="card">
-        <div class="card-header">Nova Coluna</div>
-        <div class="card-content"></div>
-      </div>
-    `);
-    $('.card-list').first().append(newColumn);
-    initializeSortable();
-  });
+$(function () {
+  fetch(URL + '/tarefas', getConfig())
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('Erro');
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      data.data.forEach((item) => {
+        appendItem(item);
+      });
+    })
+    .catch(function (error) {
+      console.error('Erro ao buscar colunas:', error);
+    })
+    .finally(function () {
+      // initializeSortable();
+    });
 });

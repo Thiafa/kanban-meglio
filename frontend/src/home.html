@@ -15,37 +15,68 @@
   <div class="container">
     <nav class="nav">
       <a href="index.html">Kanban</a>
-      <ul class="">
+      <ul>
         <li><a href="#" id="logout">Sair</a></li>
       </ul>
     </nav>
   </div>
-  <main class="container">
-    <div class="card-list">
-      <div class="card">
-        <div class="card-header">A Fazer</div>
-        <div class="card-content">
-          <div class="card-item">Tarefa 1</div>
-          <div class="card-item">Tarefa 2</div>
+  <main class="container ">
+    <div id="quadro" class="connectedSortable card-list">
+
+    </div>
+  </main>
+  <button id="create-column">Criar Coluna</button>
+  <button id="create-task">Criar Tarefa</button>
+
+  <!-- Create Column -->
+  <div id="taskColumnModal" class="modal" tabindex="-1" role="dialog" style="display: none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskColumnModalLabel"></h5>
+          <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-      </div>
-      <div class="card">
-        <div class="card-header">Em Progresso</div>
-        <div class="card-content">
-          <div class="card-item">Tarefa 3</div>
+        <div class="modal-body">
+          <input type="text" id="nome" class="form-control mb-2" name="nome" placeholder="Nome da Tarefa">
+          <input type="color" id="color" class="form-control" name="color" placeholder="Color">
         </div>
-      </div>
-      <div class="card">
-        <div class="card-header">Concluído</div>
-        <div class="card-content">
-          <div class="card-item">Tarefa 4</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="save-column">Salvar</button>
         </div>
       </div>
     </div>
-  </main>
-  <button id="create-task" style="padding: 10px 20px;">Criar Tarefa</button>
-  <button id="criar-coluna" style="padding: 10px 20px;">Criar Coluna</button>
+  </div>
+
+
+  <!-- Create Task -->
+  <div id="taskItemModal" class="modal" tabindex="-1" role="dialog" style="display: none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskItemModalLabel"></h5>
+          <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="titulo" class="form-control mb-2" name="titulo" placeholder="Nome da Tarefa">
+          <input type="text" id="descricao" class="form-control" name="descricao" placeholder="Descrição">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="save-item">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="./js/auth.js"></script>
   <script src="./js/script.js"></script>
 </body>
+
 
 </html>
