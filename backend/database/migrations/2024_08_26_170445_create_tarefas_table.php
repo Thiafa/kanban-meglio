@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('titulo');
             $table->string('descricao');
-            $table->unsignedBigInteger('coluna_id');
-            $table->foreign('coluna_id')->references('id')->on('colunas');
+            $table->integer('order')->default(0);
+            $table->unsignedBigInteger('status');
+            $table->foreign('status')->references('id')->on('colunas');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
@@ -30,7 +31,7 @@ return new class extends Migration
     {
         Schema::table('tarefas', function (Blueprint $table) {
             $table->dropForeign(['user_id']);
-            $table->dropForeign(['coluna_id']);
+            $table->dropForeign(['status']);
         });
         Schema::dropIfExists('tarefas');
     }

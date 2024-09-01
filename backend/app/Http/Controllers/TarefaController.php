@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\TarefaResource;
+use App\Models\Coluna;
 use App\Models\r;
 use App\Models\Tarefa;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,8 @@ class TarefaController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $tarefas = Tarefa::search($request)->where('user_id', auth()->user()->id)->get();
+
+        $tarefas = Tarefa::where('user_id', auth()->user()->id)->orderBy('order')->get();
 
         if ($tarefas->isEmpty()) {
             return response()->json([
@@ -36,11 +38,35 @@ class TarefaController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            $data = $request->validated();
-            $tarefa = Tarefa::create($data);
-            return (new TarefaResource($tarefa))->additional([
-                'message' => 'Tarefa criado com sucesso!',
-                'status' => True
+            // Verifica o menor valor na coluna 'order'
+            $minOrder = Coluna::min('order');
+
+            // Encontra a coluna com o menor valor de 'order'
+            $status = Coluna::where('order', $minOrder)->first();
+
+            // Verifica se a coluna existe
+            if (!$status) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "Não existem colunas",
+                ], 400);
+            }
+
+            // Encontra o maior valor de 'order' para o usuário autenticado
+            $lastOrder = Tarefa::where('user_id', auth()->user()->id)->max('order');
+
+            // Cria uma nova tarefa
+            $item = new Tarefa();
+            $item->titulo = $request->titulo;
+            $item->descricao = $request->descricao;
+            $item->status = $status->id;
+            $item->user_id = auth()->user()->id;
+            $item->order = $lastOrder + 1; // Incrementa o maior valor de 'order' encontrado
+            $item->save();
+
+            return (new TarefaResource($item))->additional([
+                'message' => 'Tarefa criada com sucesso!',
+                'status' => true
             ])->response()->setStatusCode(201);
         } catch (\Throwable $th) {
             return response()->json([
@@ -108,5 +134,18 @@ class TarefaController extends Controller
                 'message' => $th->getMessage(),
             ], 400);
         }
+    }
+
+    public function reordenar(Request $request)
+    {
+        $tarefas = $request->all();
+        foreach ($tarefas as $tarefa) {
+            $item = Tarefa::find($tarefa['id']);
+            $item->order = $tarefa['order'];
+            $item->status = $tarefa['status'];
+            $item->save();
+        }
+
+        return response()->json(['message' => 'Tarefa order updated successfully']);
     }
 }

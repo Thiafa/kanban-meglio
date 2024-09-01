@@ -18,10 +18,9 @@ class TarefaResource extends JsonResource
             'id' => $this->id,
             'titulo' => $this->titulo,
             'descricao' => $this->descricao,
+            'order' => $this->order,
             'status' => $this->status,
             'user_id' => $this->user_id,
-            'created_at' => $this->created_at->toDateTimeString(),
-            'updated_at' => $this->updated_at->toDateTimeString(),
         ];
     }
 }

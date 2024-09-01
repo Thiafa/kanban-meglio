@@ -14,7 +14,7 @@ class ColunaController extends Controller
      */
     public function index()
     {
-        $colunas = Coluna::with('user')->where('user_id', auth()->user()->id)->get();
+        $colunas = Coluna::where('user_id', auth()->user()->id)->orderBy('order')->get();
         if ($colunas->isEmpty()) {
             return response()->json([
                 'message' => 'Nenhum tarefa encontrada.',
@@ -34,10 +34,14 @@ class ColunaController extends Controller
     public function store(Request $request)
     {
         try {
-            $data = $request->validate(['nome' => 'required|string|max:35']);
-            $data['user_id'] = auth()->user()->id;
-            $coluna = Coluna::create($data);
-            return (new ColunaResource($coluna))->additional([
+            $lastOrder = Coluna::all()->max('order');
+            $item = new Coluna();
+            $item->nome = $request->nome;
+            $item->color = $request->color;
+            $item->order = $lastOrder + 1;
+            $item->user_id = auth()->user()->id;
+            $item->save();
+            return (new ColunaResource($item))->additional([
                 'message' => 'Coluna criado com sucesso!',
                 'status' => True
             ])->response()->setStatusCode(201);
@@ -96,7 +100,6 @@ class ColunaController extends Controller
     {
         try {
             $coluna = Coluna::where('user_id', auth()->user()->id)->findOrFail($id);
-            // remover apenas se não existir coluna associada a nenhuma Tarefa
             $coluna->delete();
             return response()->json([
                 'status' => true,
@@ -108,5 +111,17 @@ class ColunaController extends Controller
                 'message' => $th->getMessage(),
             ], 400);
         }
+    }
+
+    public function reordenar(Request $request)
+    {
+        $colunas = $request->all();
+        foreach ($colunas as $coluna) {
+            $item = Coluna::find($coluna['id']);
+            $item->order = $coluna['order'];
+            $item->color = $coluna['color'];
+            $item->save();
+        }
+        return response()->json(['message' => 'Coluna order updated successfully']);
     }
 }

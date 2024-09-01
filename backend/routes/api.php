@@ -16,7 +16,9 @@ Route::post('login', [AuthController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('tarefas/reordenar', [TarefaController::class, 'reordenar']);
     Route::apiResource('tarefas', TarefaController::class);
+    Route::post('colunas/reordenar', [ColunaController::class, 'reordenar']);
     Route::apiResource('colunas', ColunaController::class);
 });
 

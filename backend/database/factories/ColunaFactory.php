@@ -20,6 +20,7 @@ class ColunaFactory extends Factory
         $userCount = User::all()->count();
         return [
             'nome' => fake()->word,
+            'color' => fake()->hexColor(),
             'user_id' => rand(1, $userCount)
         ];
     }

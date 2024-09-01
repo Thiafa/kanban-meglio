@@ -16,9 +16,9 @@ class DatabaseSeeder extends Seeder
     {
         User::factory(10)->create();
 
-        $this->call([
-            ColunaSeeder::class,
-            TarefaSeeder::class,
-        ]);
+        // $this->call([
+        //     ColunaSeeder::class,
+        //     TarefaSeeder::class,
+        // ]);
     }
 }

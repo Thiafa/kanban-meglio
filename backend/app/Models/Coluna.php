@@ -11,7 +11,7 @@ class Coluna extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['id', 'nome', 'user_id'];
+    protected $fillable = ['id', 'nome', 'color', 'order', 'user_id'];
 
     public function tarefa(): HasMany
     {

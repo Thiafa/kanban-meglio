@@ -11,7 +11,7 @@ class Tarefa extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['titulo', 'descricao', 'user_id', 'status'];
+    protected $fillable = ['titulo', 'descricao', 'order', 'status', 'user_id'];
 
     public function coluna(): BelongsTo
     {
