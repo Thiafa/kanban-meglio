@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban</title>
+  <link rel="stylesheet" href="./css/index.css">
+  <script src="./js/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js" integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc=" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+  <div class="container">
+    <nav class="nav">
+      <a href="index.html">Kanban</a>
+      <ul>
+        <li><a href="#" id="logout">Sair</a></li>
+      </ul>
+    </nav>
+  </div>
+  <main class="container">
+    <div id="quadro" class="connectedSortable card-list">
+    </div>
+  </main>
+
+  <div class="container">
+    <button id="create-column">Criar Coluna</button>
+    <button id="create-task">Criar Tarefa</button>
+  </div>
+
+  <!-- Create Column Modal -->
+  <div id="taskColumnModal" class="modal" tabindex="-1" role="dialog" style="display: none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskColumnModalLabel">Adicionar Coluna</h5>
+          <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <label for="">Nome</label>
+          <input type="text" id="nome" class="form-control mb-2" name="nome" placeholder="Nome da Coluna">
+          <label for="">Cor</label>
+          <input type="color" id="color" class="form-control" name="color" placeholder="Cor">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="save-column">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Deletar Coluna -->
+  <div id="taskItemModalDelete" class="modal" tabindex="-1" role="dialog" style="display: none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskItemModalLabelDelete">Deletar Tarefa</h5>
+          <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Deseja relmente excluir esta Coluna?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="delete-column">Sim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Editar Coluna -->
+  <div id="taskColumnModalEdit" class="modal" tabindex="-1" role="dialog" style="display: none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskColumnModalLabelEdit">Editar Coluna</h5>
+          <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="nome-column" class="form-control mb-2" name="nome" placeholder="Nome da Coluna">
+          <input type="color" id="color-column" class="form-control" name="color" placeholder="Cor">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="edit-column">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Task Modal -->
+  <div id="taskItemModal" class="modal" tabindex="-1" role="dialog" style="display: none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskItemModalLabel">Adicionar Tarefa</h5>
+          <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <label for="">Título</label>
+          <input type="text" id="titulo" class="form-control mb-2" name="titulo" placeholder="Título da Tarefa">
+          <label for="">Descrição</label>
+          <input type="text" id="descricao" class="form-control" name="descricao" placeholder="Descrição">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="save-item">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div id="taskItemModalEdit" class="modal" tabindex="-1" role="dialog" style="display: none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskItemModalLabelEdit">Deletar Tarefa</h5>
+          <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-body">
+            <label for="">Título</label>
+            <input type="text" id="titulo-edit" class="form-control mb-2" name="titulo" placeholder="Título da Tarefa">
+            <label for="">Descrição</label>
+            <input type="text" id="descricao-edit" class="form-control" name="descricao" placeholder="Descrição">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="edit-item">Sim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Delete Task Modal -->
+  <div id="taskItemModalDelete" class="modal" tabindex="-1" role="dialog" style="display: none;">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskItemModalLabelDelete">Deletar Tarefa</h5>
+          <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Deseja relmente excluir esta Tarefa?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="delete-item">Sim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+  <script src="./js/auth.js"></script>
+  <script src="./js/script.js"></script>
+</body>
+
+</html>
