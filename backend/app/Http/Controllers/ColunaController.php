@@ -112,7 +112,6 @@ class ColunaController extends Controller
                     'message' => 'Não foi possível excluír a coluna pois existem tarefas associadas!',
                 ], 400);
             }
-
             $coluna->delete();
             return response()->json([
                 'status' => true,

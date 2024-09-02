@@ -1,3 +1,4 @@
+const URL = 'http://127.0.0.1:8000/api';
 // Login
 $(document).ready(function () {
   $('#form-login').submit(function (e) {
@@ -62,40 +63,90 @@ $(document).ready(function () {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'Application/json',
+        Accept: 'application/json',
         Authorization: `Bearer ${getCookie('access_token')}`,
       },
     };
     fetch(URL + '/logout', myInit)
       .then(function (response) {
         if (!response.ok) {
-          throw new Error('Login failed');
+          throw new Error('Logout failed');
         }
         return response.json();
       })
-      .then(function (response) {
-        if (response.ok) {
-          document.cookie.split(';').forEach(function (c) {
-            console.log(c);
-            document.cookie = c
-              .replace(/^ +/, '')
-              .replace(
-                /=.*/,
-                '=;expires=' + new Date().toUTCString() + ';path=/',
-              );
-          });
-        }
-        setTimeout(function () {
-          window.location.href = 'login.html';
-        }, 1000);
+      .then(function (data) {
+        document.cookie =
+          'user_id=; Max-Age=0; path=/; domain=' + location.host;
+        document.cookie =
+          'access_token=; Max-Age=0; path=/; domain=' + location.host;
+
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'Logout realizado com sucesso!',
+          icon: 'success',
+        });
+
+        window.location.href = 'login.html';
       })
-      .catch(function (e) {
-        console.error('ERROR!', e);
+      .catch(function (error) {
+        console.error('ERROR!', error);
         Swal.fire({
           title: 'Erro!',
-          text: e,
+          text: 'Erro ao realizar logout. Por favor, tente novamente.',
           icon: 'error',
         });
       });
+  });
+});
+
+$(document).ready(function () {
+  $('#form-register').submit(function (e) {
+    e.preventDefault();
+    const nome = $('#nome').val();
+    const email = $('#email').val();
+    const password = $('#password').val();
+
+    if (email !== '' && password !== '' && nome !== '') {
+      const myInit = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'Application/json',
+        },
+        body: JSON.stringify({ name: nome, email, password }),
+      };
+
+      fetch(URL + '/register', myInit)
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error('Register failed');
+          }
+          return response.json();
+        })
+        .then(function (data) {
+          Swal.fire({
+            title: 'Sucesso!',
+            text: 'Usuário registrado com sucesso!',
+            icon: 'success',
+          });
+          setTimeout(function () {
+            window.location.href = 'login.html';
+          }, 1000);
+        })
+        .catch((error) => {
+          console.log('ERROR!', error);
+          Swal.fire({
+            title: 'Erro!',
+            text: 'Falha no registro de usuário. Verifique suas credenciais.',
+            icon: 'error',
+          });
+        });
+    } else {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Os campos de nome, email e senha precisam ser preenchidos!',
+        icon: 'error',
+      });
+    }
   });
 });

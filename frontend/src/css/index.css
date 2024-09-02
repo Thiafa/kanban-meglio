@@ -7,6 +7,7 @@
   text-decoration: none;
 }
 
+
 /* Corpo */
 body {
   font-family: Arial, sans-serif;
@@ -21,10 +22,32 @@ body {
   padding: 20px;
 }
 
+.welcome h1 {
+  font-size: 2.5rem;
+  color: #333;
+}
+
+footer {
+
+  
+  position: fixed;
+  width: 1200px;;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  
+}
+
 /* Navegação */
 .nav {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   background-color: #333;
   color: #fff;
   padding: 10px 20px;
@@ -33,18 +56,13 @@ body {
 }
 
 .nav a {
-  color: #fff;
-  text-decoration: none;
+  color: inherit;
   font-size: 16px;
 }
 
 .nav ul {
   display: flex;
   gap: 20px;
-}
-
-.nav li {
-  margin: 0;
 }
 
 /* Layout do Kanban */
@@ -79,9 +97,13 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.modal-header {
-  border-bottom: 1px solid #ddd;
+.modal-header,
+.modal-footer {
   padding: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -97,7 +119,6 @@ body {
 
 .modal-footer {
   border-top: 1px solid #ddd;
-  padding: 15px;
   text-align: right;
 }
 
@@ -118,12 +139,14 @@ button:hover {
   opacity: 0.9;
 }
 
-#create-column, #create-task {
+#create-column,
+#create-task {
   background-color: #007bff;
   color: #fff;
 }
 
-#create-column:hover, #create-task:hover {
+#create-column:hover,
+#create-task:hover {
   background-color: #0056b3;
 }
 
@@ -135,19 +158,17 @@ button:hover {
   width: 300px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
-  cursor: move;
   flex-direction: column;
+  cursor: move;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   font-weight: bold;
-  margin-bottom: 10px;
   padding: 10px 8px;
+  margin-bottom: 10px;
 }
-
-
 
 .card-content {
   min-height: 200px;
@@ -173,16 +194,14 @@ button:hover {
   color: #666;
 }
 
-input[type="text"], input[type="color"] {
+/* Inputs */
+input[type="text"],
+input[type="color"] {
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 4px;
   border: 1px solid #ccc;
-}
-
-input[type="text"] {
-  font-size: 16px;
 }
 
 input[type="color"] {
@@ -191,7 +210,7 @@ input[type="color"] {
   border: none;
 }
 
-/* Modal Close Button */
+/* Botão de Fechar Modal */
 .close {
   font-size: 24px;
   background: none;
@@ -204,12 +223,13 @@ input[type="color"] {
   color: #007bff;
 }
 
-.task-header{  
-  display: flex; 
+/* Header das Tarefas */
+.task-header {
+  display: flex;
   justify-content: space-between;
-  cursor:pointer;
+  cursor: pointer;
 }
 
-.task-header i:hover{
-  color:red;
+.task-header i:hover {
+  color: red;
 }

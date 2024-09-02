@@ -1,5 +1,3 @@
-const URL = 'http://127.0.0.1:8000/api';
-
 function getCookie(name) {
   let cookie = {};
   document.cookie.split(';').forEach(function (el) {
@@ -19,7 +17,6 @@ function getConfig() {
     },
   };
 }
-
 function postConfig(content) {
   return {
     method: 'POST',
@@ -42,7 +39,6 @@ function putConfig(content) {
     body: JSON.stringify(content),
   };
 }
-
 function deleteConfig(content) {
   return {
     method: 'DELETE',
@@ -53,7 +49,24 @@ function deleteConfig(content) {
     },
   };
 }
+function checkAuthentication() {
+  fetch(URL + '/check-token', getConfig())
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('Error');
+      }
+      return response.json();
+    })
+    .catch(function (error) {
+      console.error('Usuário não logado.', error);
+      setTimeout(function () {
+        window.location.href = 'login.html';
+      }, 1000);
 
+      return;
+    });
+}
+checkAuthentication();
 function appendColumn(item) {
   const newColumn = `
     <div class="card kanban-column" id=column${item.id}>
@@ -83,10 +96,6 @@ function Column() {
     .disableSelection();
 }
 
-var currentSection = '';
-var addOrUpdate = null;
-var selectedTask = null;
-
 $(function () {
   fetch(URL + '/colunas', getConfig())
     .then(function (response) {
@@ -99,6 +108,9 @@ $(function () {
       data.data.forEach((item) => {
         appendColumn(item);
       });
+    })
+    .then(function () {
+      $('#create-task').show();
     })
     .catch(function (error) {
       console.error('Erro ao buscar colunas:', error);
@@ -131,7 +143,7 @@ function reOrderColumnOrder() {
       return response.json();
     })
     .catch(function (error) {
-      console.error(error);
+      console.error('Erro ao reordenar colunas:', error);
     });
 }
 $('#create-column').click(function (e) {
@@ -156,16 +168,17 @@ $('#create-column').click(function (e) {
           })
           .then(function (response) {
             appendColumn(response.data);
-            initializeSortable(); // Reinitialize sortable after adding new column
+            initializeSortable();
             $('#taskColumnModal').hide();
+            Swal.fire({
+              title: 'Sucesso!',
+              text: 'Coluna criada com sucesso.',
+              icon: 'success',
+            });
+            window.location.reload();
           })
           .catch(function (error) {
             console.error('Erro ao criar coluna:', error);
-            Swal.fire({
-              title: 'Erro!',
-              text: error.message,
-              icon: 'error',
-            });
           });
       }
     });
@@ -187,6 +200,88 @@ function initializeSortable() {
     })
     .disableSelection();
 }
+
+// Colunas
+
+// Deletar Coluna
+$('.card-list').on('click', '.kanban-column .fa-xmark', function () {
+  var id = $(this).closest('.kanban-column').attr('id').replace('column', '');
+  Swal.fire({
+    title: 'Você tem certeza?',
+    text: 'Você não poderá reverter isso!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, exclua!',
+    cancelButtonText: 'Não, cancelar!',
+  }).then(function (result) {
+    if (result.isConfirmed) {
+      fetch(URL + `/colunas/${id}`, deleteConfig())
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Falha ao deletar coluna');
+          }
+          return response.json();
+        })
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          Swal.fire({
+            title: 'Erro!',
+            text: 'Falha ao deletar coluna.',
+            icon: 'error',
+          });
+        })
+        .finally(function () {
+          reOrderColumnOrder();
+        });
+    }
+  });
+
+  $('.close').click(function () {
+    $('#columnItemModalDelete').hide();
+  });
+});
+// Atualizar Coluna
+$('.card-list').on('click', '.kanban-column .fa-pen', function () {
+  $('#taskColumnModalEdit').show();
+  var id = $(this).closest('.kanban-column').attr('id').replace('column', '');
+  var nome = $(`.card-header h3[item_id="${id}"]`).text();
+  var color = $(`.card-header h3[item_id="${id}"]`).attr('item_color');
+  $('#nome-column').val(nome);
+  $('#color-column').val(color);
+  $('#edit-column')
+    .off('click')
+    .on('click', function (e) {
+      const nome = $('#nome-column').val();
+      const color = $('#color-column').val();
+      fetch(URL + `/colunas/${id}`, putConfig({ nome: nome, color: color }))
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error('Falha ao atualizar coluna!');
+          }
+          return response.json();
+        })
+        .then(function (response) {
+          console.log(response);
+          reOrderKanbanOrder();
+        })
+        .catch(function (error) {
+          Swal.fire({
+            title: 'Erro!',
+            text: 'Falha ao atualizar coluna.',
+            icon: 'error',
+          });
+        })
+        .finally(function () {
+          $('#taskColumnModalEdit').hide();
+          $('#taskItemModalEdit').hide();
+        });
+    });
+  $('.close').click(function () {
+    $('.modal').hide();
+  });
+});
 
 // Tarefas
 
@@ -264,11 +359,13 @@ function reOrderKanbanOrder() {
       }
       return response.json();
     })
-    .then(function (data) {
-      console.log('Ordenação de tarefas atualizada:', data);
-    })
     .catch(function (error) {
-      console.error('Erro ao atualizar a ordenação de tarefas:', error);
+      console.error('Erro ao reordenar tarefas:', error);
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Falha ao reordenar tarefas.',
+        icon: 'error',
+      });
     });
 }
 
@@ -297,9 +394,19 @@ $('#create-task').click(function (e) {
         })
         .then(function (response) {
           appendItem(response.data);
+          Swal.fire({
+            title: 'Sucesso!',
+            text: 'Tarefa criada com sucesso.',
+            icon: 'success',
+          });
         })
         .catch(function (error) {
           console.log('Erro ao criar tarefa:', error);
+          Swal.fire({
+            title: 'Erro!',
+            text: 'Falha ao criar tarefa.',
+            icon: 'error',
+          });
         })
         .finally(function () {
           $('#taskItemModal').hide();
@@ -327,7 +434,7 @@ $(document).ready(function () {
         });
       })
       .catch(function (error) {
-        console.log('Erro ao buscar tarefas:', error);
+        console.error('Erro ao buscar tarefas:', error);
       })
       .finally(function () {
         initializeSortable();
@@ -336,13 +443,16 @@ $(document).ready(function () {
 
   // Deletar Tarefa
   $('.card-list').on('click', '.kanban-item-tasks .fa-xmark', function () {
-    $('#taskItemModalDelete').show();
-    $('#taskColumnModalEdit').hide();
-
     id = $(this).closest('.kanban-item-tasks').attr('id').replace('task', '');
-    $('#delete-item')
-      .off('click')
-      .on('click', function (e) {
+    Swal.fire({
+      title: 'Você tem certeza?',
+      text: 'Você não poderá reverter isso!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, exclua!',
+      cancelButtonText: 'Não, cancelar!',
+    }).then(function (result) {
+      if (result.isConfirmed) {
         fetch(URL + `/tarefas/${id}`, deleteConfig())
           .then(function (response) {
             if (!response.ok) {
@@ -360,11 +470,7 @@ $(document).ready(function () {
             reOrderKanbanOrder();
             $('#taskItemModalDelete').hide();
           });
-        console.log($(this).closest($(this).attr('id')));
-      });
-    $('.close').click(function () {
-      $('#taskItemModalDelete').hide();
-      $('#taskItemModalDelete').hide();
+      }
     });
   });
   // Atualizar Tarefa
@@ -409,78 +515,5 @@ $(document).ready(function () {
     $('.close').click(function () {
       $('#taskItemModalEdit').hide();
     });
-  });
-});
-// Atualizar Coluna
-$('.card-list').on('click', '.kanban-column .fa-pen', function () {
-  $('#taskColumnModalEdit').show();
-  // $('#taskItemModalEdit').hide();
-  var id = $(this).closest('.kanban-column').attr('id').replace('column', '');
-  var nome = $(`.card-header h3[item_id="${id}"]`).text();
-  var color = $(`.card-header h3[item_id="${id}"]`).attr('item_color');
-  $('#nome-column').val(nome);
-  $('#color-column').val(color);
-  $('#edit-column')
-    .off('click')
-    .on('click', function (e) {
-      const nome = $('#nome-column').val();
-      const color = $('#color-column').val();
-      fetch(URL + `/colunas/${id}`, putConfig({ nome: nome, color: color }))
-        .then(function (response) {
-          if (!response.ok) {
-            throw new Error('Falha ao criar tarefa');
-          }
-          return response.json();
-        })
-        .then(function (response) {
-          console.log(response);
-          reOrderKanbanOrder();
-        })
-        .catch(function (error) {
-          console.log('Erro ao criar tarefa:', error);
-        })
-        .finally(function () {
-          $('#taskColumnModalEdit').hide();
-          $('#taskItemModalEdit').hide();
-        });
-    });
-  $('.close').click(function () {
-    $('.modal').hide();
-  });
-});
-
-$('.card-list').on('click', '.kanban-column .fa-xmark', function () {
-  $('#taskItemModalDelete').show();
-  $('.close').click(function () {
-    $('#taskItemModalDelete').hide();
-  });
-});
-
-// Quando o botão de deletar coluna for clicado
-$('.card-list').on('click', '.kanban-column .fa-xmark', function () {
-  var id = $(this).closest('.kanban-column').attr('id').replace('column', '');
-
-  $('#delete-column')
-    .off('click')
-    .on('click', function (e) {
-      fetch(URL + `/colunas/${id}`, deleteConfig())
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Falha ao deletar coluna');
-          }
-          return response.json();
-        })
-        .then(function (response) {
-          console.log(response);
-        })
-        .catch(function (error) {
-          console.error('Erro ao deletar coluna:', error);
-        })
-        .finally(function () {
-          reOrderColumnOrder();
-        });
-    });
-  $('.close').click(function () {
-    $('#columnItemModalDelete').hide();
   });
 });
