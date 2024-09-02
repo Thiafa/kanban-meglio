@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -50,5 +51,21 @@ class AuthController extends Controller
         return response()->json([
             "message" => "Usuário deslogado com sucesso!"
         ]);
+    }
+
+
+    public function checkToken(Request $request)
+    {
+        if (Auth::check()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Token is valid',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Token is invalid or expired',
+            ], 401);
+        }
     }
 }
